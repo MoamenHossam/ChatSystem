@@ -1,24 +1,33 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+* Only need to run docker-compose up to start the application
 
-Things you may want to cover:
+* Application starts 5 servicess (api-rubyonrails, database(mysql),redis , elasticsearch and sidekiq)
 
-* Ruby version
+* Onstartup the application will run rails db:prepare which will run the migration and seed.
 
-* System dependencies
+* The creation of messages and chat are Async operations, using redis queues and sidekiq-workers, but the returning of chat number and message number are still Atomic using version and locking the database records while generating these number to handle race conditions.
 
-* Configuration
+* The search messages endpoint will use elasticSearch to search in the messages table but will return only the messages if it belongs to the application token and the chat number sent in the same request.
 
-* Database creation
+* Using sidedkiq-scheduler gem to run a scheduled job every 30 minutes that will calculate all the chats_count for application table records and messages_count for chat table records, this job runs in the backend with workers.
 
-* Database initialization
+* Specs that covers the controllers, routing and model validations.
 
-* How to run the test suite
+* Exceptions handling.
 
-* Services (job queues, cache servers, search engines, etc.)
+*   application End-Points:
+    GET    /applications                applications#index
+    POST    /applications               applications#create //{"application":{"name":"newApplication"}}
+    PUT   /applications/:token         applications#update  //{"application":{"name":"newApplication"}}
 
-* Deployment instructions
 
-* ...
+    GET    /applications/:application_token/chat                            chat#index
+    POST   /applications/:application_token/chat                            chat#create //{"chat":{"name":"newChat"}}
+    PUT    /applications/:application_token/chat/:number                    chat#update //{"chat":{"name":"newChat"}}
+
+    GET    /applications/:application_token/chat/:chat_number/messages                    messages#index
+    POST   /applications/:application_token/chat/:chat_number/messages                    messages#create//{"message":{"body":"newMessage"}   }
+    PUT    /applications/:application_token/chat/:chat_number/messages/:number            messages#update//{"message":{"body":"newMessage"}   }
+    GET    /applications/:application_token/chat/:chat_number/messages/search             messages#search
+                              
