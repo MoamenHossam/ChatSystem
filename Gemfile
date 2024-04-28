@@ -67,8 +67,8 @@ group :development do
 end
 
 
-gem "searchkick", "~> 5.3"
-gem "elasticsearch", "~> 8.13"
+gem "searchkick", "< 5.0"
+gem "elasticsearch", "< 7"
 
 
 

@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    hostname: db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: challenge_dev
+    networks:
+      - internal_network
+
+
+  web:
+    build: ./
+    command: bash -c "bundle install && rails db:prepare && rails s -b '0.0.0.0'"
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - sidekiq
+      - elasticsearch
+    links:
+      - db
+      - elasticsearch
+    networks:
+      - internal_network
+    environment:
+      RAILS_ENV: development
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_HOST: db
+      DB_NAME: challenge_dev
+      # DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - internal_network
+
+  sidekiq:
+    build: .
+    command: bash -c "bundle exec sidekiq"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      RAILS_ENV: development
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_HOST: db
+      DB_NAME: challenge_dev
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    networks:
+      - internal_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    hostname: elasticsearch
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - xpack.graph.enabled=false
+      - xpack.watcher.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./docker_data/elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - internal_network
+
+
+networks:
+  internal_network:
