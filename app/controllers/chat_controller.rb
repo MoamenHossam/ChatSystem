@@ -4,6 +4,7 @@ class ChatController < ApplicationController
 
 
     def index
+      begin  
         application = Application.find_by(token: params[:application_token])
         if application
           chats = Chat.where(application_token: params[:application_token]).order(created_at: :asc)
@@ -11,9 +12,13 @@ class ChatController < ApplicationController
         else
           render json: { error: 'Application not found' }, status: :not_found
         end
+        rescue StandardError => e
+          render json: { error: e.message }, status: :internal_server_error
+      end
     end
 
     def create
+      begin
         application = Application.find_by(token: params[:application_token])
         if application
           chat_number = ChatCreationService.new.generate_unique_chat_number(params[:application_token])
@@ -22,9 +27,13 @@ class ChatController < ApplicationController
         else
           render json: { error: 'Application not found' }, status: :not_found
         end
+      rescue StandardError => e
+        render json: { error: e.message }, status: :internal_server_error
+      end
     end
 
     def update
+      begin
         application = Application.find_by(token: params[:application_token])
         if application
           chat = Chat.find_by(application_token: params[:application_token],number: params[:number])
@@ -40,7 +49,10 @@ class ChatController < ApplicationController
         else
           render json: { error: 'Application not found' }, status: :not_found
         end
+      rescue StandardError => e
+        render json: { error: e.message }, status: :internal_server_error
       end
+    end
 
 
 

@@ -1,7 +1,8 @@
 class MessagesController < ApplicationController
   skip_before_action :verify_authenticity_token
+
   def index
-    chat = Chat.where(application_token: params[:application_token],number: params[:chat_number])
+    chat = Chat.find_by!(application_token: params[:application_token],number: params[:chat_number])
     if chat
       messages = Message.where(application_token: params[:application_token] ,chat_number: params[:chat_number]).order(created_at: :asc)
       render json: messages, :except => [:id,:created_at,:updated_at]
@@ -13,12 +14,6 @@ class MessagesController < ApplicationController
   def create
       chat = Chat.find_by(application_token: params[:application_token],number: params[:chat_number])
       if chat
-        # message_next_id = MessageNextId.find_by(token: params[:application_token],chat_number: params[:chat_number])
-        # message_number = message_next_id.next_id
-        # message_next_id.with_lock do
-        #   message_next_id.next_id+=1
-        #   message_next_id.save
-        # end
         message_number=MessageCreationService.new.generate_unique_message_number(params[:application_token],params[:chat_number])
         MessageWorker.perform_async(message_params.to_unsafe_h,params[:application_token],params[:chat_number],message_number)
         render json: {'message_number'=> message_number}.to_json
