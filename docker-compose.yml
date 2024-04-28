@@ -1,0 +1,70 @@
+version: '3.3'
+
+services:
+  web:
+    build: ./
+    command: bash -c "bundle install && rails db:migrate && rails s -b '0.0.0.0'"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - sidekiq
+    links:
+      - db
+    networks:
+      - internal_network
+    environment:
+      RAILS_ENV: development
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_HOST: db
+      DB_NAME: challenge_dev
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+
+  db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: challenge_dev
+    networks:
+      - internal_network
+
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - internal_network
+
+  sidekiq:
+    build: .
+    command: bash -c "bundle exec sidekiq"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      RAILS_ENV: development
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_HOST: db
+      DB_NAME: challenge_dev
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+    networks:
+      - internal_network
+
+
+networks:
+  internal_network:
