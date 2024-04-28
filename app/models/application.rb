@@ -3,7 +3,7 @@ class Application < ApplicationRecord
     validates :name, presence: true
     validates :token, uniqueness: true
 
-    protected
+    
   
     def generate_token
       self.token = SecureRandom.uuid

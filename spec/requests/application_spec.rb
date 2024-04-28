@@ -3,6 +3,6 @@ require 'shoulda/matchers'
 
 RSpec.describe Application, type: :model do
     describe Application do
-        it { is_expected.to validate_presence_of :name }
+        it { should validate_presence_of(:name).on(:create) }
       end
 end

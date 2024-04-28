@@ -18,7 +18,7 @@ class ChatController < ApplicationController
     end
 
     def create
-      begin
+    begin
         application = Application.find_by(token: params[:application_token])
         if application
           chat_number = ChatCreationService.new.generate_unique_chat_number(params[:application_token])

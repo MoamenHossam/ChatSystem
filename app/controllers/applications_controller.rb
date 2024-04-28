@@ -31,11 +31,12 @@ class ApplicationsController < ApplicationController
         begin
             application = Application.find_by(token: params[:token])
             if application
-                application.update!(application_params)
+                application.update(application_params)
                 render json: application, :except => [:id,:created_at,:updated_at] , status: :created
             else
                 render json: { error: 'Application not found' }, status: :not_found
             end
+
         rescue StandardError => e
             render json: { error: e.message }, status: :internal_server_error
         end
