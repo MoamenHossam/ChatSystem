@@ -1,0 +1,2 @@
+class MessageNextId < ApplicationRecord
+end

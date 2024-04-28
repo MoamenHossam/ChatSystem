@@ -1,0 +1,8 @@
+:scheduler:
+  :schedule:
+    ChatSchedulerWorker:
+      every: 30 minutes
+      class: ChatSchedulerWorker
+    ApplicationSchedulerWorker:
+      every: 30 minutes
+      class: ApplicationSchedulerWorker

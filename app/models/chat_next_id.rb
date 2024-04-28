@@ -1,0 +1,2 @@
+class ChatNextId < ApplicationRecord
+end
