@@ -42,9 +42,10 @@ class MessagesController < ApplicationController
   end
 
   def search
-    messages = Message.search(params[:term]).where(application_token: params[:application_token],chat_number: params[:chat_number])
+    messages = Message.search(params[:term],where: {chat_number: params[:chat_number],application_token: params[:application_token]})
+
     matched_msgs = messages.map{|msg| msg }
-    render json: matched_msgs, :except => [:id,:created_at,:updated_at]
+    render json: messages, :except => [:id,:created_at,:updated_at]
   end
 
 
